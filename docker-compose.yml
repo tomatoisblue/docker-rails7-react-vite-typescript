@@ -1,0 +1,41 @@
+version: '3'
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rails
+    volumes:
+      - type: bind
+        source: ./src
+        target: /src
+
+      - type: bind
+        source: ./setup
+        target: /setup
+    ports:
+      - 3000:3000
+    tty: true
+    stdin_open: true
+    command: sh start-rails.sh
+    environment:
+      VITE_RUBY_HOST: vite
+    depends_on:
+      - vite
+
+  vite:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: vite
+    volumes:
+      - type: bind
+        source: ./src
+        target: /src
+    ports:
+      - 3036:3036
+    tty: true
+    stdin_open: true
+    command: sh start-vite.sh
+    environment:
+      VITE_RUBY_HOST: 0.0.0.0
