@@ -22,7 +22,7 @@ docker compose build
 
 4. Run the `initialize.sh` script to set up the application:
 ```
-docker-compose run --rm web sh /setup/initialize.sh
+docker compose run --rm web sh /setup/initialize.sh
 ```
 While running this command, you will be prompted to delete any pre-existing files:
 ```
