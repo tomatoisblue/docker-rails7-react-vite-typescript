@@ -13,15 +13,22 @@ services:
       - type: bind
         source: ./setup
         target: /setup
+      
+      - type: volume
+        source: bundle_data
+        target: /usr/local/bundle
     ports:
       - 3000:3000
     tty: true
     stdin_open: true
     command: sh start-rails.sh
+    # command: sh start-rails-prod.sh
     environment:
       VITE_RUBY_HOST: vite
+      REDIS_URL: redis://redis:6379
     depends_on:
       - vite
+      - redis 
 
   vite:
     build:
@@ -32,6 +39,10 @@ services:
       - type: bind
         source: ./src
         target: /src
+
+      - type: volume
+        source: bundle_data
+        target: /usr/local/bundle
     ports:
       - 3036:3036
     tty: true
@@ -39,3 +50,41 @@ services:
     command: sh start-vite.sh
     environment:
       VITE_RUBY_HOST: 0.0.0.0
+
+  redis:
+    image: redis:7-bullseye
+    container_name: redis
+    volumes:
+      - type: volume
+        source: redis
+        target: /var/lib/redis/data
+    ports:
+      - 6379:6379
+    tty: true
+    stdin_open: true
+    command: redis-server --appendonly yes
+
+  sidekiq:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sidekiq
+    volumes:
+      - type: bind
+        source: ./src
+        target: /src
+
+      - type: volume
+        source: bundle_data
+        target: /usr/local/bundle
+    # command: bundle exec sidekiq -e production -C config/sidekiq.yml
+    command: bundle exec sidekiq -C config/sidekiq.yml
+    depends_on:
+      - redis
+    environment:
+      REDIS_URL: redis://redis:6379
+      
+
+volumes:
+  bundle_data:
+  redis:
